@@ -51,6 +51,7 @@ export BEHAT_TOTAL_RUNS="${BEHAT_TOTAL_RUNS:-3}"
 export TAGS="${TAGS:-}"
 export TESTSUITE="${TESTSUITE:-}"
 export RUNCOUNT="${RUNCOUNT:-1}"
+export BEHAT_VNC="${BEHAT_VNC:-}"
 
 mkdir -p "${OUTPUTDIR}"
 rm -f "${ENVIROPATH}"
@@ -89,6 +90,7 @@ echo "DBCOLLATION" >> "${ENVIROPATH}"
 echo "BROWSER" >> "${ENVIROPATH}"
 echo "WEBSERVER" >> "${ENVIROPATH}"
 echo "BEHAT_TOTAL_RUNS" >> "${ENVIROPATH}"
+echo "BEHAT_VNC" >> "${BEHAT_VNC}"
 
 echo ">>> startsection Job summary <<<"
 echo "============================================================================"
@@ -104,6 +106,7 @@ echo "== TESTTORUN: ${TESTTORUN}"
 echo "== BROWSER: ${BROWSER}"
 echo "== BEHAT_TOTAL_RUNS: ${BEHAT_TOTAL_RUNS}"
 echo "== BEHAT_SUITE: ${BEHAT_SUITE}"
+echo "== BEHAT_VNC: ${BEHAT_VNC}"
 echo "== TAGS: ${TAGS}"
 echo "== TESTSUITE: ${TESTSUITE}"
 echo "== Environment: ${ENVIROPATH}"
@@ -326,12 +329,23 @@ then
 
   if [ "$BROWSER" == "chrome" ]
   then
-    SELCONTAINER="selenium/standalone-chrome"
+    if [ ! -z "$BEHAT_VNC" ]
+    then
+      SELCONTAINER="selenium/standalone-chrome-debug"
+    else
+      SELCONTAINER="selenium/standalone-chrome"
+    fi
     SELVERSION="3.11.0-dysprosium"    
   elif [ "$BROWSER" == "firefox" ]
   then
-    SELCONTAINER="rajeshtaneja/selenium"
-    SELVERSION="2.53.1 firefox"     
+    if [ ! -z "$BEHAT_VNC" ]
+    then
+      SELCONTAINER="selenium/standalone-firefox-debug"
+      SELVERSION="2.53.1"
+    else
+      SELCONTAINER="rajeshtaneja/selenium"
+      SELVERSION="2.53.1 firefox"
+    fi
   elif [ "$BROWSER" == "goutte" ]
   then
       export BROWSER=""
