@@ -51,10 +51,16 @@ export BEHAT_TOTAL_RUNS="${BEHAT_TOTAL_RUNS:-3}"
 export TAGS="${TAGS:-}"
 export TESTSUITE="${TESTSUITE:-}"
 export RUNCOUNT="${RUNCOUNT:-1}"
+export BEHAT_TIMING_FILE="${BEHAT_TIMING_FILE:-}"
 
 mkdir -p "${OUTPUTDIR}"
 rm -f "${ENVIROPATH}"
 touch "${ENVIROPATH}"
+
+if [ ! -z "$BEHAT_TIMING_FILE" ]
+then
+  cp "$BEHAT_TIMING_FILE" "$OUTPUTDIR"/timing.json
+fi
 
 # Select db to use today.
 if [ -n "$DBTORUN" ]
@@ -89,6 +95,7 @@ echo "DBCOLLATION" >> "${ENVIROPATH}"
 echo "BROWSER" >> "${ENVIROPATH}"
 echo "WEBSERVER" >> "${ENVIROPATH}"
 echo "BEHAT_TOTAL_RUNS" >> "${ENVIROPATH}"
+echo "BEHAT_TIMING_FILE" >> "${ENVIROPATH}"
 
 echo ">>> startsection Job summary <<<"
 echo "============================================================================"
@@ -106,6 +113,7 @@ echo "== BEHAT_TOTAL_RUNS: ${BEHAT_TOTAL_RUNS}"
 echo "== BEHAT_SUITE: ${BEHAT_SUITE}"
 echo "== TAGS: ${TAGS}"
 echo "== TESTSUITE: ${TESTSUITE}"
+echo "== BEHAT_TIMING_FILE: ${BEHAT_TIMING_FILE}"
 echo "== Environment: ${ENVIROPATH}"
 echo "============================================================================"
 echo ">>> stopsection <<<"
@@ -571,6 +579,12 @@ then
 
   # Store the web server logs.
   docker logs "${WEBSERVER}" 2>&1 | gzip > "${OUTPUTDIR}"/webserver.gz
+
+  # Update the timing file
+  if [ ! -z "$BEHAT_TIMING_FILE" ]
+  then
+    cp "$OUTPUTDIR"/timing.json "$BEHAT_TIMING_FILE"
+  fi
 else
 
   echo

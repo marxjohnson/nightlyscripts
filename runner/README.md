@@ -37,6 +37,7 @@ You also need to set several environment variables, depending on your testing re
 | `BEHAT_TOTAL_RUNS`  | INTEGER                                                 | 3               | For behat, the number of parallel runs to perform. |
 | `BEHAT_SUITE`       | Theme                                                   | Empty           | The theme to test with Behat. Valid options are `default` (meaning site default), `clean`, and `more`. |
 | `RUNCOUNT`          | INTEGER                                                 | 1               | Used to perform tests in a loop. Use with caution and always with tags. |
+| `BEHAT_TIMING_FILE` | /path/to/timing/file.json                               | Empty           | Used to record timings for each behat feature and evenly distribute features between runs. |
 
 Other args are also available too, but are not recommended.
 

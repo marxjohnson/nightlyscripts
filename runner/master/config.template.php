@@ -73,6 +73,10 @@ for ($run = 0; $run < getenv('BEHAT_TOTAL_RUNS'); $run++) {
     $CFG->behat_profiles["default{$run}"] = $profile;
 }
 
+if (getenv('BEHAT_TIMING_FILE')) {
+    define('BEHAT_FEATURE_TIMING_FILE', '/shared/timing.json');
+}
+
 define('PHPUNIT_LONGTEST', true);
 
 define('TEST_LDAPLIB_HOST_URL', getenv('LDAPTESTURL'));
