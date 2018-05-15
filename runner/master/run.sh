@@ -326,45 +326,12 @@ then
 
   if [ "$BROWSER" == "chrome" ]
   then
-
-    SELVERSION="3.11.0-dysprosium"
-    ITER=0
-    while [[ ${ITER} -lt ${BEHAT_TOTAL_RUNS} ]]
-    do
-      SELITERNAME=sel"${ITER}${UUID}"
-      docker run \
-        --network nightly \
-        --name ${SELITERNAME} \
-        --detach \
-        $SHMMAP \
-        -v "${CODEDIR}":/var/www/html \
-        selenium/standalone-chrome:${SELVERSION}
-
-      export "SELENIUMURL_${ITER}"="http://${SELITERNAME}:4444"
-      echo "SELENIUMURL_${ITER}" >> "${ENVIROPATH}"
-
-      ITER=$(($ITER+1))
-    done
+    SELCONTAINER="selenium/standalone-chrome"
+    SELVERSION="3.11.0-dysprosium"    
   elif [ "$BROWSER" == "firefox" ]
   then
-
-    ITER=0
-    while [[ ${ITER} -lt ${BEHAT_TOTAL_RUNS} ]]
-    do
-      SELITERNAME=sel"${ITER}${UUID}"
-      docker run \
-        --network nightly \
-        --name ${SELITERNAME} \
-        --detach \
-        $SHMMAP \
-        -v "${CODEDIR}":/var/www/html \
-        rajeshtaneja/selenium:2.53.1 firefox
-
-      export "SELENIUMURL_${ITER}"="http://${SELITERNAME}:4444"
-      echo "SELENIUMURL_${ITER}" >> "${ENVIROPATH}"
-
-      ITER=$(($ITER+1))
-    done
+    SELCONTAINER="rajeshtaneja/selenium"
+    SELVERSION="2.53.1 firefox"     
   elif [ "$BROWSER" == "goutte" ]
   then
       export BROWSER=""
@@ -374,14 +341,32 @@ then
 
   if [ "${HASSELENIUM}" -gt 0 ]
   then
-      sleep 5
+	ITER=0
+    while [[ ${ITER} -lt ${BEHAT_TOTAL_RUNS} ]]
+    do
+      SELITERNAME=sel"${ITER}${UUID}"
+      docker run \
+        --network nightly \
+        --name ${SELITERNAME} \
+        --detach \
+        $SHMMAP \
+        -v "${CODEDIR}":/var/www/html \
+        ${SELCONTAINER}:${SELVERSION}
 
-      ITER=0
-      while [[ ${ITER} -lt ${BEHAT_TOTAL_RUNS} ]]
-      do
-        docker logs sel"${ITER}${UUID}"
-        ITER=$(($ITER+1))
-      done
+      export "SELENIUMURL_${ITER}"="http://${SELITERNAME}:4444"
+      echo "SELENIUMURL_${ITER}" >> "${ENVIROPATH}"
+
+      ITER=$(($ITER+1))
+    done
+  
+    sleep 5
+
+    ITER=0
+    while [[ ${ITER} -lt ${BEHAT_TOTAL_RUNS} ]]
+    do
+      docker logs sel"${ITER}${UUID}"
+      ITER=$(($ITER+1))
+    done
   fi
 
   echo "============================================================================"
