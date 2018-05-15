@@ -358,6 +358,19 @@ then
 	ITER=0
     while [[ ${ITER} -lt ${BEHAT_TOTAL_RUNS} ]]
     do
+
+      PORT=
+      if [ ! -z "$BEHAT_VNC" ]
+      then
+        if [[ ${ITER} -gt 10 ]]
+        then
+          PORTNUM="${ITER}"
+        else
+          PORTNUM="0${ITER}"
+        fi
+        PORT="-p 59${PORTNUM}:5900"
+      fi
+
       SELITERNAME=sel"${ITER}${UUID}"
       docker run \
         --network nightly \
@@ -365,6 +378,7 @@ then
         --detach \
         $SHMMAP \
         -v "${CODEDIR}":/var/www/html \
+        ${PORT} \
         ${SELCONTAINER}:${SELVERSION}
 
       export "SELENIUMURL_${ITER}"="http://${SELITERNAME}:4444"
