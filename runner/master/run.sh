@@ -53,6 +53,7 @@ export TESTSUITE="${TESTSUITE:-}"
 export RUNCOUNT="${RUNCOUNT:-1}"
 export BEHAT_TIMING_FILENAME="${BEHAT_TIMING_FILENAME:-}"
 export BEHAT_INCREASE_TIMEOUT="${BEHAT_INCREASE_TIMEOUT:-}"
+export BEHAT_VNC="${BEHAT_VNC:-}"
 
 # Ensure that the output directory exists.
 # It must also be set with the sticky bit, and world writable.
@@ -113,6 +114,7 @@ echo "WEBSERVER" >> "${ENVIROPATH}"
 echo "BEHAT_TOTAL_RUNS" >> "${ENVIROPATH}"
 echo "BEHAT_TIMING_FILENAME" >> "${ENVIROPATH}"
 echo "BEHAT_INCREASE_TIMEOUT" >> "${ENVIROPATH}"
+echo "BEHAT_VNC" >> "${BEHAT_VNC}"
 
 echo ">>> startsection Job summary <<<"
 echo "============================================================================"
@@ -128,6 +130,7 @@ echo "== TESTTORUN: ${TESTTORUN}"
 echo "== BROWSER: ${BROWSER}"
 echo "== BEHAT_TOTAL_RUNS: ${BEHAT_TOTAL_RUNS}"
 echo "== BEHAT_SUITE: ${BEHAT_SUITE}"
+echo "== BEHAT_VNC: ${BEHAT_VNC}"
 echo "== TAGS: ${TAGS}"
 echo "== TESTSUITE: ${TESTSUITE}"
 echo "== Environment: ${ENVIROPATH}"
@@ -388,10 +391,48 @@ then
     export "IONICURL"="http://${IONICHOSTNAME}:8100"
     echo "IONICURL" >> "${ENVIROPATH}"
 
-    SELVERSION="3.11.0-dysprosium"
-    ITER=0
+    if [ ! -z "$BEHAT_VNC" ]
+    then
+      SELCONTAINER="selenium/standalone-chrome-debug"
+    else
+      SELCONTAINER="selenium/standalone-chrome"
+    fi
+    SELVERSION="3.11.0-dysprosium"    
+  elif [ "$BROWSER" == "firefox" ]
+  then
+    if [ ! -z "$BEHAT_VNC" ]
+    then
+      SELCONTAINER="selenium/standalone-firefox-debug"
+      SELVERSION="2.53.1"
+    else
+      SELCONTAINER="rajeshtaneja/selenium"
+      SELVERSION="2.53.1 firefox"
+    fi
+  elif [ "$BROWSER" == "goutte" ]
+  then
+      export BROWSER=""
+      HASSELENIUM=0
+      echo "No selenium server required"
+  fi
+
+  if [ "${HASSELENIUM}" -gt 0 ]
+  then
+	ITER=0
     while [[ ${ITER} -lt ${BEHAT_TOTAL_RUNS} ]]
     do
+
+      PORT=
+      if [ ! -z "$BEHAT_VNC" ]
+      then
+        if [[ ${ITER} -gt 10 ]]
+        then
+          PORTNUM="${ITER}"
+        else
+          PORTNUM="0${ITER}"
+        fi
+        PORT="-p 59${PORTNUM}:5900"
+      fi
+
       SELITERNAME=sel"${ITER}${UUID}"
       docker run \
         --network "${NETWORK}" \
@@ -399,15 +440,16 @@ then
         --detach \
         $SHMMAP \
         -v "${CODEDIR}":/var/www/html \
-        selenium/standalone-chrome:${SELVERSION}
+        ${PORT} \
+        ${SELCONTAINER}:${SELVERSION}
 
       export "SELENIUMURL_${ITER}"="http://${SELITERNAME}:4444"
       echo "SELENIUMURL_${ITER}" >> "${ENVIROPATH}"
 
       ITER=$(($ITER+1))
     done
-  elif [ "$BROWSER" == "firefox" ]
-  then
+  
+    sleep 5
 
     FFSELVERSION="3.141.59_47.0.1"
     ITER=0
@@ -425,25 +467,10 @@ then
       export "SELENIUMURL_${ITER}"="http://${SELITERNAME}:4444"
       echo "SELENIUMURL_${ITER}" >> "${ENVIROPATH}"
 
+      docker logs sel"${ITER}${UUID}"
+
       ITER=$(($ITER+1))
     done
-  elif [ "$BROWSER" == "goutte" ]
-  then
-      export BROWSER=""
-      HASSELENIUM=0
-      echo "No selenium server required"
-  fi
-
-  if [ "${HASSELENIUM}" -gt 0 ]
-  then
-      sleep 5
-
-      ITER=0
-      while [[ ${ITER} -lt ${BEHAT_TOTAL_RUNS} ]]
-      do
-        docker logs sel"${ITER}${UUID}"
-        ITER=$(($ITER+1))
-      done
   fi
 
   echo "============================================================================"
