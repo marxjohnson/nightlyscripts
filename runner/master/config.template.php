@@ -115,8 +115,13 @@ if ($redistestname = getenv('REDISTESTNAME')) {
     define('TEST_SESSION_REDIS_HOST', $redistestname);
     define('TEST_CACHESTORE_REDIS_TESTSERVERS', $redistestname);
 }
+
 if (!empty(getenv('EXTTESTURL'))) {
     define('TEST_EXTERNAL_FILES_HTTP_URL', getenv('EXTTESTURL'));
+}
+
+if ($ionicurl = getenv('IONICURL')) {
+    $CFG->behat_ionic_wwwroot = $ionicurl;
 }
 
 require_once(__DIR__ . '/lib/setup.php');
