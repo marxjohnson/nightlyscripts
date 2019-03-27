@@ -124,4 +124,8 @@ if ($ionicurl = getenv('IONICURL')) {
     $CFG->behat_ionic_wwwroot = $ionicurl;
 }
 
+if ($behattimeout = getenv('BEHAT_INCREASE_TIMEOUT')) {
+    $CFG->behat_increasetimeout = $behattimeout;
+}
+
 require_once(__DIR__ . '/lib/setup.php');
